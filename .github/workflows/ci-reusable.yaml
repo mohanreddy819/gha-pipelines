@@ -1,0 +1,66 @@
+name: templaate based ci pipeline
+
+on:
+    workflow_call:
+        inputs:
+            projectName:
+                required: true
+                type: string
+                description: 'Name of the project'
+            chckoutCode:
+                required: false
+                type: boolean
+                description: 'Whether to checkout code'
+                default: true
+            goVersion:
+                required: true
+                type: string
+                description: 'Go version to use'
+            cacheRequied:
+                required: false
+                type: boolean
+                description: 'Whether to cache Go modules'
+                default: true
+            preBuildCommand:
+                required: false
+                type: string
+                description: 'Command to run before build'
+            buildCommand:
+                required: true
+                type: string
+                description: 'Command to build the project'
+            testCommand:
+                required: false
+                type: string
+                description: 'Command to run tests'
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              if: ${{ inputs.chckoutCode }}
+              uses: actions/checkout@v4
+
+            - name: Set up Go
+              uses: actions/setup-go@v4
+              with:
+                  go-version: ${{ inputs.goVersion }}
+
+            - name: Cache Go modules
+              if: ${{ inputs.cacheRequied }}
+              uses: actions/cache@v3
+              with:
+                go_version: ${{ inputs.goVersion }}
+            - name: Run pre-build command
+              if: ${{ inputs.preBuildCommand }}
+              run: ${{ inputs.preBuildCommand }}
+            - name: Build project
+              run: ${{ inputs.buildCommand }}
+            - name: Run tests
+              if: ${{ inputs.testCommand }}
+              run: ${{ inputs.testCommand }}
+            
+            
+
